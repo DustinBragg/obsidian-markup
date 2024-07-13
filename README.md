@@ -18,7 +18,7 @@ In addition to the menu you can control all of these things via commands as well
 - Markup: Color selected text (Color *1-5*)
 - Markup: Highlight selected text (Color *1-5*)
 ## Customization
-The colors are all customizable within the settings menu. I tried to pick sensible defaults that should look decent on both light and dark backgrounds.
+The colors are all customizable within the settings menu. I tried to pick sensible defaults that should have options look decent on both light and dark backgrounds, but you're free to change them as you wish.
 
 ![image](https://github.com/user-attachments/assets/3bbe5aec-4539-4d56-ab1f-e7645b386e7d)
 ## TODO
