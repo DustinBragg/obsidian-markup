@@ -497,6 +497,7 @@ class MarkupSettingTab extends PluginSettingTab {
                     .addExtraButton((ExtraButton) =>
                         ExtraButton
                             .setIcon("rotate-ccw")
+			    .setTooltip("Restore default", { placement: "top" })
                             .onClick(async () => {
                                 this.PluginObj.Settings.Colors[ColorIndex] =
                                     DEFAULT_SETTINGS.Colors[ColorIndex];
@@ -530,6 +531,7 @@ class MarkupSettingTab extends PluginSettingTab {
                     .addExtraButton((ExtraButton) =>
                         ExtraButton
                             .setIcon("rotate-ccw")
+			    .setTooltip("Restore default", { placement: "top" })
                             .onClick(async () => {
                                 this.PluginObj.Settings.HighlightColors[HighlightIndex] =
                                     DEFAULT_SETTINGS.HighlightColors[HighlightIndex]

@@ -1,7 +1,7 @@
 {
 	"id": "markup",
 	"name": "Markup",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"minAppVersion": "0.15.0",
 	"description": "Color and highlight selected text quickly and easily.",
 	"author": "Dustin Bragg",
