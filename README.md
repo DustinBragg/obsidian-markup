@@ -5,7 +5,7 @@ This plugin tries its best to be minimal, and adhere to keeping your markdown fi
 ## Usage
 Using the new menu options on the status bar you can select from 1 of 5 options for either coloring or highlighting text. This same menu allows you to toggle whether the selected text will be bold or italic as well on subsequent triggers.
 
-https://github.com/user-attachments/assets/ebc3e911-9b68-4c3e-93b9-c058e9b92b15
+https://github.com/user-attachments/assets/2f0f3663-fa5a-47b9-afa5-4ee5a395a1e0
 
 Simply select the text you want to color or highlight, and interact with the menu. When removing formatting, you must select the text as well as the **\<span\>**\ tags on both sides. This is easily accomplished by clicking on the colored/highlighted text, and Obsidian will select all of that for you.
 ### Commands
