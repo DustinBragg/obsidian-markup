@@ -7,7 +7,7 @@ It's technically a **work-in-progress** as I haven't fully put it through its pa
 ## Usage
 Using the new menu options on the status bar you can select from 1 of 5 options for either coloring or highlighting text. This same menu allows you to toggle whether the selected text will be bold or italic as well on subsequent triggers.
 
-https://github.com/user-attachments/assets/aa203164-4f26-44e3-b9e9-912c736343e6
+https://github.com/user-attachments/assets/0a921279-04b2-432c-ba96-1b7d0d31e611
 
 Simply select the text you want to color or highlight, and interact with the menu. When removing formatting, you must select the text as well as the **\<span\>** tags on both sides. This is easily accomplished by clicking on the colored/highlighted text, and Obsidian will select all of that for you.
 ### Commands
@@ -20,7 +20,7 @@ In addition to the menu you can control all of these things via commands as well
 ## Customization
 The colors are all customizable within the settings menu. I tried to pick sensible defaults that should have options look decent on both light and dark backgrounds, but you're free to change them as you wish.
 
-![image](https://github.com/user-attachments/assets/3bbe5aec-4539-4d56-ab1f-e7645b386e7d)
+![image](https://github.com/user-attachments/assets/5cb0da66-d703-4fcc-bb40-76bbadc8e1ee)
 ## TODO
 - [ ] Support for multiple cursors
 - [ ] Unformat blocks that contain multiple existing markup'd text
