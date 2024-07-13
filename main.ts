@@ -9,9 +9,9 @@ interface markup_plugin_settings {
 
 const DEFAULT_SETTINGS: markup_plugin_settings = {
     Colors: [
-        "#FF0000",
-        "#00FF00",
-        "#0000FF",
+        "#FF0A0A",
+        "#00C800",
+        "#DD7700",
         "#FFFF00",
         "#00FFFF"
     ],
@@ -19,9 +19,9 @@ const DEFAULT_SETTINGS: markup_plugin_settings = {
     HighlightColors: [
         [ "#000000", "#FFFF00" ],
         [ "#000000", "#00FF00" ],
-        [ "#000000", "#FF0000" ],
+        [ "#FFFFFF", "#FF0000" ],
         [ "#000000", "#00FFFF" ],
-        [ "#000000", "#FF00FF" ]
+        [ "#FFFFFF", "#FF00FF" ]
     ]
 }
 
