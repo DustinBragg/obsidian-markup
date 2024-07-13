@@ -17,6 +17,7 @@ In addition to the menu you can control all of these things via commands as well
 - Markup: Highlight selected text (Color *1-5*)
 ## Customization
 The colors are all customizable within the settings menu. I tried to pick sensible defaults that should look decent on both light and dark backgrounds.
+
 ![image](https://github.com/user-attachments/assets/3bbe5aec-4539-4d56-ab1f-e7645b386e7d)
 ## TODO
 - [ ] Support for multiple cursors
