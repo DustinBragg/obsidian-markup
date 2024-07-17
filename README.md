@@ -24,3 +24,4 @@ The colors are all customizable within the settings menu. I tried to pick sensib
 ## TODO
 - [ ] Support for multiple cursors
 - [ ] Unformat blocks that contain multiple existing markup'd text
+- [ ] Canvas support
