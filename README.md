@@ -1,5 +1,7 @@
 # Obsidian Markup Plugin
 This is an [Obsidian](https://obsidian.md/) plugin created to simply and unobtrusively solve a simple problem: *Changing text color and highlighting blocks of text.*
+![image](https://github.com/user-attachments/assets/bbac25a8-2f8f-4448-817d-1cb978a6dd91)
+
 ## Philosophy
 This plugin tries its best to be minimal, and adhere to keeping your markdown files as un-"meddled with" as possible. To color and highlight text it wraps them in a **\<span\>** tag with its own *style* attribute. Because of this it is incompatible with the existing **bold** and *italic* in markdown, so it implements that in the *style* as well.
 
