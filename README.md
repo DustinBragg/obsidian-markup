@@ -22,6 +22,4 @@ The colors are all customizable within the settings menu. I tried to pick sensib
 
 ![image](https://github.com/user-attachments/assets/5cb0da66-d703-4fcc-bb40-76bbadc8e1ee)
 ## TODO
-- [ ] Support for multiple cursors
-- [ ] Unformat blocks that contain multiple existing markup'd text
 - [ ] Canvas support
