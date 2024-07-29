@@ -99,24 +99,24 @@ export default class MarkupPlugin extends Plugin {
             HighlightStatusBarItem.Plugin = this;
         }
 
-        // Remove formatting
+        // Remove markup
         {
             this.addCommand({
-                id: "markup-remove-formatting",
-                name: "Remove formatting from selected text",
+                id: "markup-remove-markup",
+                name: "Remove markup from selected text",
                 editorCallback: () => {
-                    this.RemoveSelectedTextFormatting();
+                    this.RemoveSelectedTextMarkup();
                 }
             });
 
-            const RemoveFormattingStatusBarItem = this.addStatusBarItem();
-            setIcon(RemoveFormattingStatusBarItem, "remove-formatting");
-            setTooltip(RemoveFormattingStatusBarItem,
-                       "Remove formatting from selected text",
+            const RemoveMarkupStatusBarItem = this.addStatusBarItem();
+            setIcon(RemoveMarkupStatusBarItem, "remove-formatting");
+            setTooltip(RemoveMarkupStatusBarItem,
+                       "Remove markup from selected text",
                        { placement: "top" });
-            RemoveFormattingStatusBarItem.classList.add("mod-clickable");
-            RemoveFormattingStatusBarItem.addEventListener("click", this.OpenRemoveFormattingMenu);
-            RemoveFormattingStatusBarItem.Plugin = this;
+            RemoveMarkupStatusBarItem.classList.add("mod-clickable");
+            RemoveMarkupStatusBarItem.addEventListener("click", this.OpenRemoveMarkupMenu);
+            RemoveMarkupStatusBarItem.Plugin = this;
         }
 
         // This adds a settings tab so the user can configure various aspects of the plugin
@@ -143,9 +143,14 @@ export default class MarkupPlugin extends Plugin {
             return null;
         }
 
-        const View = Workspace.getActiveViewOfType(MarkdownView);
+        let View = Workspace.getActiveViewOfType(MarkdownView);
         if (!View) {
-            return null;
+	    const Leaf = Workspace.activeLeaf;
+	    if (Leaf && Leaf.view && Leaf.view.plugin && Leaf.view.plugin.id == "canvas") {
+		new Notice("Markup in a canvas is not supported at this time");
+	    } else {
+		return null;
+	    }
         }
 
         const EditorV = View.editor;
@@ -173,49 +178,54 @@ export default class MarkupPlugin extends Plugin {
                ]
     }
 
-    RemoveSelectedTextFormatting()
+    RemoveSelectedTextMarkup()
     {
         // Verify we have a selection
         const EditorV = this.GetEditor();
         if (!EditorV) {
             return;
         }
-
-        // TODO: Handle multiple spans in the same selection
-
+        if (!EditorV.somethingSelected()) {
+            return;
+        }
+	
         // Our search queries
         const PrefixRegex = /<span style="[^"]*">/g;
         const PostfixRegex = "</span>";
 
-        // Make sure this is even unformattable
-        const CurSelection = EditorV.getSelection();
-        const Len = CurSelection.length;
-        if (CurSelection.search(PrefixRegex) == -1 ||
-            CurSelection.search(PostfixRegex) == -1) {
-            return;
-        }
+        // Loop through our selections
+	let NewSelections = [];
+	for (let SelectionID = 0;
+	     SelectionID < EditorV.listSelections().length;
+	     ++SelectionID) {
+            // Make sure this is even unmarkup-able
+	    const Selections = EditorV.listSelections();
+	    const ThisSelection = Selections[SelectionID];
+	    const Anchor = ThisSelection.anchor;
+	    const Head = ThisSelection.head;
+	    const From = (Anchor.line > Head.line || Anchor.ch > Head.ch)? Head : Anchor;
+	    const To = (Anchor.line > Head.line || Anchor.ch > Head.ch)? Anchor : Head;
 
-        // Unformat the text
-        const CurP = this.GetSelectionPositions();
-        const NewString = (CurSelection.replace(PrefixRegex, "")).replace(PostfixRegex, "");
-        EditorV.replaceSelection(NewString);
-
-        // Select the newly unformatted text
-        const Match = CurSelection.match(PrefixRegex)[0];
-        let NewAnchor = CurP[2];
-        let NewHead = CurP[3];
-        if (NewAnchor.line > NewHead.line ||
-            NewAnchor.ch > NewHead.ch) {
-            NewAnchor.ch -= (Match.length + PostfixRegex.length);
-        } else {
-            NewHead.ch -= (Match.length + PostfixRegex.length);
-        }       
-        EditorV.setSelection(NewAnchor, NewHead);
+	    const CurSelection = EditorV.getRange(From, To);
+	    const Hits = CurSelection.match(PrefixRegex);
+	    if (!Hits) {
+		return;
+	    }
+	    
+	    const NumHits = Hits.length;
+	    if (!NumHits) {
+		return;
+	    }
+	    
+            // Demarkup the text
+            const NewString = (CurSelection.replaceAll(PrefixRegex, "")).replaceAll(PostfixRegex, "");
+            EditorV.replaceRange(NewString, From, To);
+	}
     }
 
-    ColorSelectedText(Color: string)
+    MarkupSelectedText(ColorStr: string, HighlightStr: string)
     {
-        // Verify we have a selection
+	// Verify we have a selection
         const EditorV = this.GetEditor();
         if (!EditorV) {
             return;
@@ -225,73 +235,70 @@ export default class MarkupPlugin extends Plugin {
             return;
         }
 
-        // Clear existing formatting
-        this.RemoveSelectedTextFormatting();
+        // Clear existing markup
+        this.RemoveSelectedTextMarkup();
 
         // Build our style string
         const Bold = this.BoldSelected;
         const Italic = this.ItalicSelected;
-        const ColorStr = "color:" + Color + ";";
-        const BoldStr = Bold? "font-weight:bold;" : "";
-        const ItalicStr = Italic? "font-style:italic;" : "";
-        const StyleStr = ColorStr + BoldStr + ItalicStr;
-
-        // Replace our selection
-        const Prefix = "<span style=\"" + StyleStr + "\">";
-        const CurSelection = EditorV.getSelection();
-        const Postfix = "</span>";
-        EditorV.replaceSelection(Prefix + CurSelection + Postfix);
-
-        // Bump our cursor forward if there is room
-        const CurP = EditorV.getCursor().ch;
-        let Line = EditorV.getCursor().line;
-        let NewP = (CurP >= EditorV.getLine(Line).length)? CurP : CurP + 1;
-        if (NewP == CurP && Line != EditorV.lastLine()) { // We are at the end of the line, but there's one below us
-            NewP = 0;
-            ++Line;
-        }
-        EditorV.setCursor(Line, NewP);
-    }
-
-    HighlightSelectedText(Colors: string[])
-    {
-        // Verify we have a selection
-        const EditorV = this.GetEditor();
-        if (!EditorV) {
-            return;
-        }
-        if (!EditorV.somethingSelected()) {
-            new Notice("No text selected!");
-            return;
-        }
-
-        // Clear existing formatting
-        this.RemoveSelectedTextFormatting();
-
-        // Build our style string
-        const Bold = this.BoldSelected;
-        const Italic = this.ItalicSelected;
-        const ColorStr = "color:" + Colors[0] + ";";
-        const HighlightStr = "background:" + Colors[1] + "BB;";
         const BoldStr = Bold? "font-weight:bold;" : "";
         const ItalicStr = Italic? "font-style:italic;" : "";
         const StyleStr = ColorStr + HighlightStr + BoldStr + ItalicStr;
 
-        // Replace our selection
-        const Prefix = "<span style=\"" + StyleStr + "\">";
-        const CurSelection = EditorV.getSelection();
-        const Postfix = "</span>";
-        EditorV.replaceSelection(Prefix + CurSelection + Postfix);
+	// Loop through our selections
+	for (let SelectionID = 0;
+	     SelectionID < EditorV.listSelections().length;
+	     ++SelectionID) {
+	    // Re-grab the current selections every loop, since replaceRange will move the text around
+	    const Selections = EditorV.listSelections();
+	    const ThisSelection = Selections[SelectionID];
+	    const Anchor = ThisSelection.anchor;
+	    const Head = ThisSelection.head;
+	    const From = (Anchor.line > Head.line || Anchor.ch > Head.ch)? Head : Anchor;
+	    const To = (Anchor.line > Head.line || Anchor.ch > Head.ch)? Anchor : Head;
 
-        // Bump our cursor forward if there is room
-        const CurP = EditorV.getCursor().ch;
-        let Line = EditorV.getCursor().line;
-        let NewP = (CurP >= EditorV.getLine(Line).length)? CurP : CurP + 1;
-        if (NewP == CurP && Line != EditorV.lastLine()) { // We are at the end of the line, but there's one below us
-            NewP = 0;
-            ++Line;
-        }
-        EditorV.setCursor(Line, NewP);
+            // Replace this selection
+            const Prefix = "<span style=\"" + StyleStr + "\">";
+            const CurSelection = EditorV.getRange(From, To);
+            const Postfix = "</span>";
+	    EditorV.replaceRange(Prefix + CurSelection + Postfix, From, To);
+	}
+
+        // Bump the cursor forward one if there is room
+	// This makes it so we don't have to see the markup after it is applied
+	let NewSelections = [];
+	const Selections = EditorV.listSelections();
+	for (let SelectionID = 0;
+	     SelectionID < Selections.length;
+	     ++SelectionID) {
+	    const ThisSelection = Selections[SelectionID];
+            const Head = ThisSelection.head;
+	    const CurP = Head.ch;
+	    let Line = Head.line;
+            let NewP = (CurP >= EditorV.getLine(Line).length)? CurP : CurP + 1;
+            if (NewP == CurP && Line != EditorV.lastLine()) { // We are at the end of the line, but there's one below us
+		NewP = 0;
+		++Line;
+            }
+	    
+	    const NewHead = {ch: NewP, line: Line};
+	    NewSelections.push({anchor: NewHead, head: NewHead});
+	}
+
+	EditorV.setSelections(NewSelections, 0);
+    }
+    
+    ColorSelectedText(Color: string)
+    {
+	const ColorStr = "color:" + Color + ";";
+	this.MarkupSelectedText(ColorStr, "");
+    }
+
+    HighlightSelectedText(Colors: string[])
+    {
+	const ColorStr = "color:" + Colors[0] + ";";
+        const HighlightStr = "background:" + Colors[1] + "BB;";
+	this.MarkupSelectedText(ColorStr, HighlightStr);
     }
 
     DoCheckboxItem(Event, Menu, Setting, Title, Icon)
@@ -452,7 +459,7 @@ export default class MarkupPlugin extends Plugin {
         HighlightMenu.showAtMouseEvent(Event);
     }
 
-    OpenRemoveFormattingMenu(Event)
+    OpenRemoveMarkupMenu(Event)
     {
         const EditorV = this.Plugin.GetEditor();
         if (!EditorV) {
@@ -460,12 +467,11 @@ export default class MarkupPlugin extends Plugin {
         }
 
         if (!EditorV.somethingSelected()) {
-            new Notice("No text selected!");
             return;
         }
 
         EditorV.focus();
-        this.Plugin.RemoveSelectedTextFormatting();
+        this.Plugin.RemoveSelectedTextMarkup();
     }
 }
 
