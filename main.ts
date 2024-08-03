@@ -143,22 +143,16 @@ export default class MarkupPlugin extends Plugin {
             return null;
         }
 
-        let View = Workspace.getActiveViewOfType(MarkdownView);
-        if (!View) {
-	    const Leaf = Workspace.activeLeaf;
-	    if (Leaf && Leaf.view && Leaf.view.plugin && Leaf.view.plugin.id == "canvas") {
-		new Notice("Markup in a canvas is not supported at this time");
-	    } else {
-		return null;
-	    }
-        }
+	if (!Workspace.activeEditor) {
+	    return null;
+	}
 
-        const EditorV = View.editor;
-        if (!EditorV) {
-            return null;
-        }
+	const EditorObj = Workspace.activeEditor.editMode.editor;
+	if (!EditorObj) {
+	    return null;
+	}
 
-        return EditorV;
+	return EditorObj;
     }
 
     GetSelectionPositions()
