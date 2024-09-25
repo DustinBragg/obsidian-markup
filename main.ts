@@ -1,27 +1,28 @@
 import { App, Editor, MarkdownView, Plugin, PluginSettingTab, Setting, Menu, setIcon, setTooltip } from "obsidian";
 
 const NUM_COLORS = 5;
+const NUM_COMMANDS = NUM_COLORS*2;
 
 interface markup_plugin_settings {
-    Colors[NUM_COLORS]: string;
-    HighlightColors[NUM_COLORS]: [string, string]; // text, background
+    Colors[NUM_COLORS]: [string, string]; // name, text color
+    HighlightColors[NUM_COLORS]: [string, string, string]; // name, text color, background color
 }
 
 const DEFAULT_SETTINGS: markup_plugin_settings = {
     Colors: [
-        "#FF0A0A",
-        "#00C800",
-        "#DD7700",
-        "#FFFF00",
-        "#00FFFF"
+        [ "Red",    "#FF0A0A" ],
+        [ "Green",  "#00C800" ],
+        [ "Orange", "#DD7700" ],
+        [ "Yellow", "#FFFF00" ],
+        [ "Teal",   "#00FFFF" ]
     ],
 
     HighlightColors: [
-        [ "#000000", "#FFFF00" ],
-        [ "#000000", "#00FF00" ],
-        [ "#FFFFFF", "#FF0000" ],
-        [ "#000000", "#00FFFF" ],
-        [ "#FFFFFF", "#FF00FF" ]
+        [ "Black on Yellow", "#000000", "#FFFF00" ],
+        [ "Black on Green",  "#000000", "#00FF00" ],
+        [ "White on Red",    "#FFFFFF", "#FF0000" ],
+        [ "Black on Teal",   "#000000", "#00FFFF" ],
+        [ "White on Purple", "#FFFFFF", "#FF00FF" ]
     ]
 }
 
@@ -29,6 +30,8 @@ export default class MarkupPlugin extends Plugin {
     Settings: markup_plugin_settings;
     BoldSelected: false;
     ItalicSelected: false;
+
+    CommandIDs: string[] = new Array(NUM_COMMANDS).fill("");
     
     async onload() {
         await this.loadSettings();
@@ -50,21 +53,11 @@ export default class MarkupPlugin extends Plugin {
                 new Notice("Markup: Italic status " + ((this.ItalicSelected)? "ON" : "OFF"));
             }
         });
-        
+
+	this.RegisterCommands();
+	
         // Colored Text
         {
-            for (let ColorIndex = 0;
-                 ColorIndex < NUM_COLORS;
-                 ++ColorIndex) {
-                this.addCommand({
-                    id: "markup-color-text-" + (ColorIndex + 1),
-                    name: "Color selected text (Color " + (ColorIndex + 1) + ")",
-                    editorCallback: () => {
-                        this.ColorSelectedText(this.Settings.Colors[ColorIndex]);
-                    }
-                });
-            }
-
             const ColorStatusBarItem = this.addStatusBarItem();
             setIcon(ColorStatusBarItem, "palette");
             setTooltip(ColorStatusBarItem,
@@ -77,18 +70,6 @@ export default class MarkupPlugin extends Plugin {
 
         // Highlighted Text
         {
-            for (let HighlightIndex = 0;
-                 HighlightIndex < NUM_COLORS;
-                 ++HighlightIndex) {
-                this.addCommand({
-                    id: "markup-highlight-text-" + (HighlightIndex + 1),
-                    name: "Highlight selected text (Highlight " + (HighlightIndex + 1) + ")",
-                    editorCallback: () => {
-                        this.HighlightSelectedText(this.Settings.HighlightColors[HighlightIndex]);
-                    }
-                });
-            }
-
             const HighlightStatusBarItem = this.addStatusBarItem();
             setIcon(HighlightStatusBarItem, "highlighter");
             setTooltip(HighlightStatusBarItem,
@@ -136,6 +117,40 @@ export default class MarkupPlugin extends Plugin {
         await this.saveData(this.Settings);
     }
 
+    RegisterCommands() {
+	for (let CommandIndex = 0;
+	     CommandIndex < NUM_COMMANDS;
+	     ++CommandIndex) {
+	    if (this.CommandIDs[CommandIndex]) {
+		this.removeCommand(this.CommandIDs[CommandIndex]);
+	    }
+	}
+
+	for (let ColorIndex = 0;
+             ColorIndex < NUM_COLORS;
+             ++ColorIndex) {
+            this.addCommand({
+                id: "markup-color-text-" + (ColorIndex + 1),
+                name: "Color selected text (" + this.Settings.Colors[ColorIndex][0] + ")",
+                editorCallback: () => {
+                    this.ColorSelectedText(this.Settings.Colors[ColorIndex]);
+                }
+            });
+        }
+
+	for (let HighlightIndex = 0;
+             HighlightIndex < NUM_COLORS;
+             ++HighlightIndex) {
+            this.addCommand({
+                id: "markup-highlight-text-" + (HighlightIndex + 1),
+                name: "Highlight selected text (" + this.Settings.HighlightColors[HighlightIndex][0] + ")",
+                editorCallback: () => {
+                    this.HighlightSelectedText(this.Settings.HighlightColors[HighlightIndex]);
+                }
+            });
+        }
+    }
+    
     GetEditor()
     {
         const Workspace = this.app.workspace;
@@ -282,16 +297,16 @@ export default class MarkupPlugin extends Plugin {
 	EditorV.setSelections(NewSelections, 0);
     }
     
-    ColorSelectedText(Color: string)
+    ColorSelectedText(Color: string[])
     {
-	const ColorStr = "color:" + Color + ";";
+	const ColorStr = "color:" + Color[1] + ";";
 	this.MarkupSelectedText(ColorStr, "");
     }
 
     HighlightSelectedText(Colors: string[])
     {
-	const ColorStr = "color:" + Colors[0] + ";";
-        const HighlightStr = "background:" + Colors[1] + "BB;";
+	const ColorStr = "color:" + Colors[1] + ";";
+        const HighlightStr = "background:" + Colors[2] + "BB;";
 	this.MarkupSelectedText(ColorStr, HighlightStr);
     }
 
@@ -360,7 +375,7 @@ export default class MarkupPlugin extends Plugin {
                 {
                     ColorItem
                         .setIcon("case-sensitive")
-                        .setTitle("Color " + (ColorIndex + 1))
+                        .setTitle(this.Plugin.Settings.Colors[ColorIndex][0])
                         .setChecked(false)
                         .onClick(() => {
                             this.Plugin.ColorSelectedText(this.Plugin.Settings.Colors[ColorIndex]);
@@ -369,7 +384,7 @@ export default class MarkupPlugin extends Plugin {
                 }
             );
             const ItemEl = ColorMenu.items[ItemID];
-            ItemEl.iconEl.style.color = this.Plugin.Settings.Colors[ColorIndex];
+            ItemEl.iconEl.style.color = this.Plugin.Settings.Colors[ColorIndex][1];
             ++ItemID;
         }
 
@@ -436,7 +451,7 @@ export default class MarkupPlugin extends Plugin {
                 {
                     HighlightItem
                         .setIcon("case-sensitive")
-                        .setTitle("Highlight " + (HighlightIndex + 1))
+                        .setTitle(this.Plugin.Settings.HighlightColors[HighlightIndex][0])
                         .setChecked(false)
                         .onClick(() => {
                             this.Plugin.HighlightSelectedText(this.Plugin.Settings.HighlightColors[HighlightIndex]);
@@ -445,8 +460,8 @@ export default class MarkupPlugin extends Plugin {
                 }
             );
             const ItemEl = HighlightMenu.items[ItemID];
-            ItemEl.iconEl.style.color = this.Plugin.Settings.HighlightColors[HighlightIndex][0];
-            ItemEl.iconEl.style.backgroundColor = this.Plugin.Settings.HighlightColors[HighlightIndex][1];
+            ItemEl.iconEl.style.color = this.Plugin.Settings.HighlightColors[HighlightIndex][1];
+            ItemEl.iconEl.style.backgroundColor = this.Plugin.Settings.HighlightColors[HighlightIndex][2];
             ++ItemID;
         }
 
@@ -505,11 +520,20 @@ class MarkupSettingTab extends PluginSettingTab {
                                 this.display(); // Refresh the page
                             })
                     )
-                    .addColorPicker((ColorPicker) =>
+                    .addTextArea((ColorPicker) =>
                         ColorPicker
-                            .setValue(this.PluginObj.Settings.Colors[ColorIndex])
+                            .setValue(this.PluginObj.Settings.Colors[ColorIndex][0])
                             .onChange(async (Value) => {
-                                this.PluginObj.Settings.Colors[ColorIndex] = Value;
+                                this.PluginObj.Settings.Colors[ColorIndex][0] = Value;
+                                await this.PluginObj.saveSettings();
+				this.PluginObj.RegisterCommands();
+                            })
+                    )
+		    .addColorPicker((ColorPicker) =>
+                        ColorPicker
+                            .setValue(this.PluginObj.Settings.Colors[ColorIndex][1])
+                            .onChange(async (Value) => {
+                                this.PluginObj.Settings.Colors[ColorIndex][1] = Value;
                                 await this.PluginObj.saveSettings();
                             })
                     );
@@ -539,12 +563,13 @@ class MarkupSettingTab extends PluginSettingTab {
                                 this.display(); // Refresh the page
                             })
                     )
-                    .addColorPicker((HighlightPicker) =>
+                    .addTextArea((HighlightPicker) =>
                         HighlightPicker
                             .setValue(this.PluginObj.Settings.HighlightColors[HighlightIndex][0])
                             .onChange(async (Value) => {
                                 this.PluginObj.Settings.HighlightColors[HighlightIndex][0] = Value;
                                 await this.PluginObj.saveSettings();
+				this.PluginObj.RegisterCommands();
                             })
                     )
                     .addColorPicker((HighlightPicker) =>
@@ -552,6 +577,14 @@ class MarkupSettingTab extends PluginSettingTab {
                             .setValue(this.PluginObj.Settings.HighlightColors[HighlightIndex][1])
                             .onChange(async (Value) => {
                                 this.PluginObj.Settings.HighlightColors[HighlightIndex][1] = Value;
+                                await this.PluginObj.saveSettings();
+                            })
+                    )
+                    .addColorPicker((HighlightPicker) =>
+                        HighlightPicker
+                            .setValue(this.PluginObj.Settings.HighlightColors[HighlightIndex][2])
+                            .onChange(async (Value) => {
+                                this.PluginObj.Settings.HighlightColors[HighlightIndex][2] = Value;
                                 await this.PluginObj.saveSettings();
                             })
                     );
