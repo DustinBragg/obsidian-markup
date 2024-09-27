@@ -21,4 +21,5 @@ In addition to the menu you can control all of these things via commands as well
 ## Customization
 The colors are all customizable within the settings menu. I tried to pick sensible defaults, with options that mostly look decent on both light and dark backgrounds, but you're free to change them as you wish.
 
-![image](https://github.com/user-attachments/assets/5cb0da66-d703-4fcc-bb40-76bbadc8e1ee)
+![image](https://github.com/user-attachments/assets/c8c440c1-49a6-434c-a4d3-1fd02af4dae4)
+
